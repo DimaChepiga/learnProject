@@ -26,6 +26,23 @@ const   box = document.getElementById('box'),
         hearts = document.querySelectorAll('.heart'),
         heart1 = document.querySelector('.heart');
 
-box.style.backgroundColor = 'blue';
-box.style.width = '500px';
+// box.style.backgroundColor = 'blue';
+// box.style.width = '500px';
 
+const div = document.createElement('div');
+
+div.classList.add('black');
+div.innerText = 'my text';
+
+// document.body.append(div);
+// document.body.prepend(div);
+
+
+//document.querySelector('.wrapper').append(div);
+
+// hearts[0].before(div);
+// hearts[1].after(div);
+
+// circles[2].remove(); 
+
+hearts[2].replaceWith(circles[0]);
