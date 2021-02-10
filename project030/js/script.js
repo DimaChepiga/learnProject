@@ -12,7 +12,7 @@
 
 5) Добавить нумерацию выведенных фильмов */
 
-'use strict';
+'use strict'; 
 
 const movieDB = {
     movies: [
@@ -39,14 +39,14 @@ document.querySelector('.promo__bg').style.backgroundImage = 'url("img/bg.jpg")'
 
 const movieList = document.querySelector('.promo__interactive-list');
 
-console.log(movieList.innerHTML);
+// console.log(movieList.innerHTML);
 
 
 movieList.innerHTML = '';
 
 movieDB.movies.sort();
 
-console.log(movieList.innerHTML);
+// console.log(movieList.innerHTML);
 
 movieDB.movies.forEach( (nameFilm, numFilm) => {
     movieList.innerHTML += `
