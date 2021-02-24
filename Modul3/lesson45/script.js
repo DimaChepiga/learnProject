@@ -6,7 +6,7 @@ function User(name,id) {
     this.human = true;
     this.hello = function () {
         console.log(`Hello ${this.name}`);        
-    }
+    };
 
     
 }
@@ -18,6 +18,6 @@ ivan.hello();
 
 User.prototype.exit = function () {
     console.log(`User ${this.name} is exit`);    
-}
+};
 
 ivan.exit();
