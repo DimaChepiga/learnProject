@@ -168,6 +168,8 @@ window.addEventListener('DOMContentLoaded', () => {
     // Show Modal Window SetTimeout
 
     const showWinTimeout = setTimeout(modalShow, 5000);
+    clearTimeout(showWinTimeout); //! Don't fogget remove this
+ 
 
     // Show Modal Window if scroll page is down
     function showModalScroll() {
@@ -183,11 +185,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // window.addEventListener('click', () => {
     //     // callback function body
-    // }, {once: true});  //! Дополнительные опции в листенерах, once: true разовый вызов, см доки
+    // }, {once: true});  //? Дополнительные опции в листенерах, once: true разовый вызов, см доки
     // Modal Window end
 
 
-    //! Classes lesson 48 Use class for menu card
+    //? Classes lesson 48 Use class for menu card
 
     class MenuCard {
         constructor(src, alt, title, descr, price, parentSelector) {
@@ -234,7 +236,26 @@ window.addEventListener('DOMContentLoaded', () => {
         '.menu .container'
     ).render();
 
+    new MenuCard(
+        "img/tabs/elite.jpg",
+        "elite",
+        'Меню “Премиум”',
+        'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
+        14,
+        '.menu .container'
+    ).render();
+
+    new MenuCard(
+        "img/tabs/post.jpg",
+        "post",
+        'Меню "Постное"',
+        'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.',
+        21,
+        '.menu .container'
+    ).render();
+
+
+
+
 });
 
-const aaa = document.querySelector('.container');
-console.log(aaa);
