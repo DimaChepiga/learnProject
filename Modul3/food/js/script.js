@@ -321,8 +321,8 @@ window.addEventListener('DOMContentLoaded', () => {
                 display: block;
                 margin: 0 auto;
             `;
-            form.append(statusMessage);
-            form.insertAdjacentElement();
+            // form.append(statusMessage); //? Добавляем в саму форму сообщение
+            form.insertAdjacentElement('afterend', statusMessage); //? Добавляем спинер после формы, в нижней форме
 
             const request = new XMLHttpRequest();
 
