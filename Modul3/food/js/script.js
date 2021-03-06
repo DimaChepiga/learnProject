@@ -155,9 +155,9 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     document.addEventListener('click', (e) => {
-        let m = e.target.dataset.modal;
+        let m = e.target.dataset.modal; //TODO можно попробовать оптимизировать код убрав переменную m
         if (m == 'linkAs') {
-            modalShow();
+            modalShow(); 
             // modalW.style.display = 'block'; // мой ваиант без классов
         } else if (m == 'close') {
             modalHide();
@@ -167,8 +167,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Show Modal Window SetTimeout
 
-    const showWinTimeout = setTimeout(modalShow, 5000);
-    clearTimeout(showWinTimeout); //! Don't fogget remove this
+    const showWinTimeout = setTimeout(modalShow, 50000);
+    // clearTimeout(showWinTimeout); //! Don't fogget remove this
  
 
     // Show Modal Window if scroll page is down
@@ -265,13 +265,14 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const forms = document.querySelectorAll('form');
     const message = {
-            loading: 'загрузка',
+            loading: 'img/form/spinner.svg',
             success: 'Спасибо! Скоро мы с вами свяжемся',
             failure: 'Что-то пошло не так'
     };
 
-    forms.forEach(item => {
-        postData(item);
+    forms.forEach(item => {//? Навешиваем события на формы отправки контактов
+        // postData(item); //? FormData
+        postDataJSON(item); //? FormData to JSON
     });
 
 
@@ -297,6 +298,8 @@ window.addEventListener('DOMContentLoaded', () => {
                 if (request.status === 200) {
                     console.log(request.response);
                     statusMessage.textContent = message.success;
+                    form.reset();
+                    setTimeout(() => { statusMessage.remove();}, 2000);
                 } else {
                     statusMessage.textContent = message.failure;
                 }
@@ -305,6 +308,80 @@ window.addEventListener('DOMContentLoaded', () => {
 
         });
         
+    }
+
+
+    function postDataJSON(form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const statusMessage = document.createElement('img');
+            statusMessage.src = message.loading;
+            statusMessage.style.cssText = `
+                display: block;
+                margin: 0 auto;
+            `;
+            form.append(statusMessage);
+            form.insertAdjacentElement();
+
+            const request = new XMLHttpRequest();
+
+            request.open('POST', 'server.php');
+            request.setRequestHeader('Content-type', 'aplication/json');
+            
+            const formData = new FormData(form);
+
+            //? переводим FormData в объект для передачи в JSON напрямую не принимает
+            const object = {};
+            formData.forEach((value, key) => {
+                object[key] = value;
+            });
+
+            request.send(JSON.stringify(object));
+
+            request.addEventListener('load', () => {
+                if (request.status === 200) {
+                    console.log(request.response);
+                    showThanksModal(message.success);
+                    form.reset();
+                    statusMessage.remove();
+                    // setTimeout(() => { statusMessage.remove();}, 2000);
+                } else {
+                    showThanksModal(message.failure);
+                }
+            });
+
+
+        });
+        
+    }
+
+
+    // modal window for message contacts me
+
+    function showThanksModal(message) {
+        const prevModalDialog = document.querySelector('.modal__dialog');
+        prevModalDialog.classList.add('hide');
+
+        modalShow(); 
+
+        const thanksModal =document.createElement('div');
+        thanksModal.classList.add('modal__dialog');
+        thanksModal.innerHTML = `
+            <div class='modal__content'>
+                <div data-modal='close' class="modal__close">&times;</div>
+                <div class='modal__title'>${message}</div>
+            </div>
+        
+        `;
+
+        document.querySelector('.modal').append(thanksModal);
+        setTimeout( () => {
+            thanksModal.remove();
+            prevModalDialog.classList.add('show');
+            prevModalDialog.classList.remove('hide');
+            modalHide();
+        }, 4000);
     }
 
 });
