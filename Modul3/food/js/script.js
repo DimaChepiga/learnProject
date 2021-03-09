@@ -157,7 +157,7 @@ window.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', (e) => {
         let m = e.target.dataset.modal; //TODO можно попробовать оптимизировать код убрав переменную m
         if (m == 'linkAs') {
-            modalShow(); 
+            modalShow();
             // modalW.style.display = 'block'; // мой ваиант без классов
         } else if (m == 'close') {
             modalHide();
@@ -169,7 +169,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const showWinTimeout = setTimeout(modalShow, 50000);
     // clearTimeout(showWinTimeout); //! Don't fogget remove this
- 
+
 
     // Show Modal Window if scroll page is down
     function showModalScroll() {
@@ -210,7 +210,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
         render() {
             const element = document.createElement('div');
-            if (this.classes.length === 0) {this.classes = ['menu__item'];}
+            if (this.classes.length === 0) {
+                this.classes = ['menu__item'];
+            }
 
             this.classes.forEach(className => element.classList.add(className));
             element.innerHTML = `
@@ -265,12 +267,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const forms = document.querySelectorAll('form');
     const message = {
-            loading: 'img/form/spinner.svg',
-            success: 'Спасибо! Скоро мы с вами свяжемся',
-            failure: 'Что-то пошло не так'
+        loading: 'img/form/spinner.svg',
+        success: 'Спасибо! Скоро мы с вами свяжемся',
+        failure: 'Что-то пошло не так'
     };
 
-    forms.forEach(item => {//? Навешиваем события на формы отправки контактов
+    forms.forEach(item => { //? Навешиваем события на формы отправки контактов
         // postData(item); //? FormData
         postDataJSON(item); //? FormData to JSON
     });
@@ -280,34 +282,55 @@ window.addEventListener('DOMContentLoaded', () => {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
 
-            const statusMessage = document.createElement('div');
-            statusMessage.classList.add('status');
-            statusMessage.textContent = message.loading;
-            form.append(statusMessage);
-
-            const request = new XMLHttpRequest();
-
-            request.open('POST', 'server.php');
-            //! request.setRequestHeader('Content-type', 'multipart/form-data'); НЕ НАДО ЭТОГО ДЕЛАТЬ!!!
+            const statusMessage = document.createElement('img');
+            statusMessage.src = message.loading;
+            statusMessage.style.cssText = `
+                display: block;
+                margin: 0 auto;
+            `;
+            // form.append(statusMessage); //? Добавляем в саму форму сообщение
+            form.insertAdjacentElement('afterend', statusMessage); //? Добавляем спинер после формы, в нижней форме
 
             const formData = new FormData(form);
 
-            request.send(formData);
+            fetch('server.php', {
+                method: "POST",
+ /*                headers: {
+                    'Content-type': 'aplication/json'
+                }, */
+                body: formData 
+            })
+            .then(data => data.text())
+            .then(data => {
+                console.log(data);
+                showThanksModal(message.success);
+            })
+            .catch(() => {
+                showThanksModal(message.failure);
+            })
+            .finally(() => {
+                form.reset();
+                statusMessage.remove();
+            });
 
-            request.addEventListener('load', () => {
+
+
+/*             request.addEventListener('load', () => {
                 if (request.status === 200) {
                     console.log(request.response);
                     statusMessage.textContent = message.success;
                     form.reset();
-                    setTimeout(() => { statusMessage.remove();}, 2000);
+                    setTimeout(() => {
+                        statusMessage.remove();
+                    }, 2000);
                 } else {
                     statusMessage.textContent = message.failure;
                 }
             });
 
-
+ */
         });
-        
+
     }
 
 
@@ -324,20 +347,39 @@ window.addEventListener('DOMContentLoaded', () => {
             // form.append(statusMessage); //? Добавляем в саму форму сообщение
             form.insertAdjacentElement('afterend', statusMessage); //? Добавляем спинер после формы, в нижней форме
 
-            const request = new XMLHttpRequest();
-
-            request.open('POST', 'server.php');
-            request.setRequestHeader('Content-type', 'aplication/json');
-            
             const formData = new FormData(form);
 
-            //? переводим FormData в объект для передачи в JSON напрямую не принимает
-            const object = {};
-            formData.forEach((value, key) => {
-                object[key] = value;
+           //? переводим FormData в объект для передачи в JSON напрямую не принимает
+           const object = {};
+           formData.forEach((value, key) => {
+               object[key] = value;
+           });
+
+
+            fetch('serverjson.php', {
+                method: "POST",
+                headers: {
+                    'Content-type': 'aplication/json'
+                },
+                body: JSON.stringify(object) 
+            })
+            .then(data => data.text())
+            .then(data => {
+                console.log(data);
+                showThanksModal(message.success);
+            })
+            .catch(() => {
+                showThanksModal(message.failure);
+            })
+            .finally(() => {
+                form.reset();
+                statusMessage.remove();
             });
 
-            request.send(JSON.stringify(object));
+ 
+
+
+/*             request.send(JSON.stringify(object));
 
             request.addEventListener('load', () => {
                 if (request.status === 200) {
@@ -350,10 +392,10 @@ window.addEventListener('DOMContentLoaded', () => {
                     showThanksModal(message.failure);
                 }
             });
-
+ */
 
         });
-        
+
     }
 
 
@@ -363,9 +405,9 @@ window.addEventListener('DOMContentLoaded', () => {
         const prevModalDialog = document.querySelector('.modal__dialog');
         prevModalDialog.classList.add('hide');
 
-        modalShow(); 
+        modalShow();
 
-        const thanksModal =document.createElement('div');
+        const thanksModal = document.createElement('div');
         thanksModal.classList.add('modal__dialog');
         thanksModal.innerHTML = `
             <div class='modal__content'>
@@ -376,7 +418,7 @@ window.addEventListener('DOMContentLoaded', () => {
         `;
 
         document.querySelector('.modal').append(thanksModal);
-        setTimeout( () => {
+        setTimeout(() => {
             thanksModal.remove();
             prevModalDialog.classList.add('show');
             prevModalDialog.classList.remove('hide');
@@ -384,5 +426,28 @@ window.addEventListener('DOMContentLoaded', () => {
         }, 4000);
     }
 
-});
 
+    /*     fetch('https://jsonplaceholder.typicode.com/todos/1')
+            .then(response => response.json())
+            .then(json => console.log(json));
+     */
+
+/*     fetch('https://jsonplaceholder.typicode.com/posts', {
+            method: "POST",
+            body: JSON.stringify({
+                name: 'Alex'
+            }),
+            headers: {
+                'Content-type': 'Aplication/json'
+            }
+        })
+
+        .then(response => response.json())
+        .then(json => console.log(json));
+ */
+    fetch('db.json')
+        .then(data => data.json())
+        .then(res => console.log(res));
+
+
+});
