@@ -231,36 +231,25 @@ window.addEventListener('DOMContentLoaded', () => {
 
     }
 
-    new MenuCard(
-        "img/tabs/vegy.jpg",
-        "vegy",
-        'Меню "Фитнес"',
-        'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
-        9,
-        '.menu .container',
-        'menu__item'
 
-    ).render();
+    const getResource = async (url) => {
+        const res = await fetch(url);
 
-    new MenuCard(
-        "img/tabs/elite.jpg",
-        "elite",
-        'Меню “Премиум”',
-        'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
-        14,
-        '.menu .container',
-        'menu__item'
-    ).render();
+        if (!res.ok) {
+            throw new Error(`Could not fetch ${url} Status: ${res.status}`);
 
-    new MenuCard(
-        "img/tabs/post.jpg",
-        "post",
-        'Меню "Постное"',
-        'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.',
-        21,
-        '.menu .container',
-        'menu__item'
-    ).render();
+        }
+
+        return await res.json();
+    };
+
+    getResource('http://localhost:3000/menu')
+        .then(data => {
+            data.forEach(({img, altimg, title, descr, price}) => {
+                new MenuCard(img, altimg, title, descr, price, '.menu .container', 'menu__item').render();
+            });
+        });
+
 
 
     // Send Contacts me Forms 
@@ -273,12 +262,12 @@ window.addEventListener('DOMContentLoaded', () => {
     };
 
     forms.forEach(item => { //? Навешиваем события на формы отправки контактов
-        // postData(item); //? FormData
-        postDataJSON(item); //? FormData to JSON
+        // postDataNotJSON(item); //? FormData
+        // postDataJSON(item); //? FormData to JSON
+        bindPostDataJSON(item); //? FormData to JSON with JSON Server
     });
 
-
-    function postData(form) {
+    function postDataNotJSON(form) {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
 
@@ -398,6 +387,64 @@ window.addEventListener('DOMContentLoaded', () => {
 
     }
 
+    // Работаем с JSON SERVER
+
+    const postData = async (url, data) => {
+        const res = await fetch(url, {
+            method: "POST",
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8'
+            },
+            body: data
+        });
+
+        return await res.json();
+    };
+
+
+    function bindPostDataJSON(form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const statusMessage = document.createElement('img');
+            statusMessage.src = message.loading;
+            statusMessage.style.cssText = `
+                display: block;
+                margin: 0 auto;
+            `;
+            // form.append(statusMessage); //? Добавляем в саму форму сообщение
+            form.insertAdjacentElement('afterend', statusMessage); //? Добавляем спинер после формы, в нижней форме
+
+            const formData = new FormData(form);
+
+/*            //? переводим FormData в объект для передачи в JSON напрямую не принимает
+           let object = {};
+           formData.forEach((value, key) => {
+               object[key] = value;
+           });
+ */
+           //? Современный способ перевести FormData в object -> JSON
+
+           const json = JSON.stringify(Object.fromEntries(formData.entries()));
+
+            // postData('http://localhost:3000/requests', JSON.stringify(object)) //?старый способ
+            postData('http://localhost:3000/requests', json) //? новый способ
+            .then(data => {
+                console.log(data);
+                showThanksModal(message.success);
+            })
+            .catch(() => {
+                showThanksModal(message.failure);
+            })
+            .finally(() => {
+                form.reset();
+                statusMessage.remove();
+            });
+        });
+
+    }
+
+
 
     // modal window for message contacts me
 
@@ -445,9 +492,106 @@ window.addEventListener('DOMContentLoaded', () => {
         .then(response => response.json())
         .then(json => console.log(json));
  */
-    fetch('db.json')
+/*     fetch(' http://localhost:3000/menu')
         .then(data => data.json())
         .then(res => console.log(res));
+ */
+
+    // sliders
+
+    const slides       = document.querySelectorAll('.offer__slide'),
+          prev         = document.querySelector('.offer__slider-prev'),
+          next         = document.querySelector('.offer__slider-next'),
+          current      = document.querySelector('#current'),
+          total        = document.querySelector('#total'),
+          slideWrapper = document.querySelector('.offer__slider-wrapper'),
+          slidesField  = document.querySelector('.offer__slider-inner'),
+          width        = window.getComputedStyle(slideWrapper).width;
+
+
+    
+//TODO Slider var.2
+
+    let slideIndex = 1;  //TODO Slider variant 1
+    let offset = 0;
+
+    total.textContent = slides.length < 10 ? `0${slides.length}` : slides.length;
+    current.textContent = slideIndex < 10 ? `0${slideIndex}` : slideIndex;
+
+
+
+    slidesField.style.width = 100 * slides.length + '%';
+    slidesField.style.display = 'flex';
+    slidesField.style.transition = '0.5s all';
+
+    slideWrapper.style.overflow = 'hidden';
+
+    slides.forEach(slide => {
+        slide.style.width = width;
+    });
+    
+    next.addEventListener('click', () => {
+        
+        if (offset == +width.slice(0, width.length - 2) * (slides.length - 1)){
+            offset = 0;
+            slideIndex = 1;
+        } else {
+            offset += +width.slice(0, width.length - 2);
+            ++slideIndex;
+        }
+        slidesField.style.transform = `translateX(-${offset}px)`;
+        current.textContent = slideIndex < 10 ? `0${slideIndex}` : slideIndex;
+    });
+
+    prev.addEventListener('click', () => {
+        
+        if (offset == 0) {
+            offset = +width.slice(0, width.length - 2) * (slides.length - 1);
+            slideIndex = slides.length;
+        } else {
+            offset -= +width.slice(0, width.length - 2);
+            --slideIndex;
+        }
+        slidesField.style.transform = `translateX(-${offset}px)`;
+        current.textContent = slideIndex < 10 ? `0${slideIndex}` : slideIndex;
+    });
+
+
+/*     let slideIndex = 1;  //TODO Slider variant 1
+
+    showSlides(0);
+    total.textContent = slides.length < 10 ? `0${slides.length}` : slides.length;
+
+
+    function showSlides(n) {
+        slideIndex += n;
+
+        if (slideIndex > slides.length){
+            slideIndex = 1;
+        } else if (slideIndex < 1){
+            slideIndex = slides.length;
+        }
+
+        current.textContent = slideIndex < 10 ? `0${slideIndex}` : slideIndex;
+
+        slides.forEach((item, index) => {
+            if (index + 1 !== slideIndex) {
+                item.classList.add('hide');
+            } else {
+                item.classList.remove('hide');
+            }
+
+        });
+    }
+
+    prev.addEventListener('click', () => {
+        showSlides(-1);
+    });
+
+    next.addEventListener('click', () => {
+        showSlides(1);
+    });
+ */
 
 
 });
